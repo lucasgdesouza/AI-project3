@@ -18,6 +18,14 @@ class Nodo:
         self.acao = acao
         self.custo = custo
 
+    def __eq__(self, other):
+        """Dois nós são iguais se tiverem o mesmo estado."""
+        return isinstance(other, Nodo) and self.estado == other.estado
+
+    def __hash__(self):
+        """Permite usar Nodo em conjuntos e dicionários."""
+        return hash(self.estado)
+
 
 def sucessor(estado:str)->Set[Tuple[str,str]]:
     """
