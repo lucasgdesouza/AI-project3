@@ -67,11 +67,66 @@ def expande(nodo:Nodo)->Set[Nodo]:
     Recebe um nodo (objeto da classe Nodo) e retorna um conjunto de nodos.
     Cada nodo do conjunto é contém um estado sucessor do nó recebido.
     :param nodo: objeto da classe Nodo
-    :return:
+    :return: conjunto de nodos sucessores
     """
-    # substituir a linha abaixo pelo seu codigo
-    raise NotImplementedError
+    # Obter o conjunto de tuplas (ação, novo_estado) do estado atual
+    sucessores = sucessor(nodo.estado)
+    
+    # Criar um conjunto para armazenar os nodos sucessores
+    nodos_sucessores = set()
+    
+    # Para cada ação e estado sucessor, criar um novo nodo
+    for acao, novo_estado in sucessores:
+        # Criar um novo nodo com:
+        # - o novo estado
+        # - o nodo atual como pai
+        # - a ação que levou a este estado
+        # - o custo do caminho até aqui (custo do pai + 1)
+        novo_nodo = Nodo(novo_estado, nodo, acao, nodo.custo + 1)
+        nodos_sucessores.add(novo_nodo)
+    
+    return nodos_sucessores
 
+
+def calcula_hamming(estado: str) -> int:
+    """
+    Calcula a distância de Hamming (número de peças fora do lugar)
+    em relação ao estado objetivo "12345678_"
+    """
+    objetivo = "12345678_"
+    return sum(1 for i in range(9) if estado[i] != objetivo[i] and estado[i] != '_')
+
+def calcula_manhattan(estado: str) -> int:
+    """
+    Calcula a soma das distâncias Manhattan de cada peça até sua posição objetivo
+    """
+    objetivo = "12345678_"
+    distancia = 0
+    
+    # Posições x,y de cada índice no tabuleiro 3x3
+    posicoes = {i: (i // 3, i % 3) for i in range(9)}
+    
+    for i in range(9):
+        if estado[i] != '_':
+            # Encontra a posição objetivo desta peça
+            pos_obj = objetivo.index(estado[i])
+            # Calcula a distância Manhattan entre a posição atual e a objetivo
+            x1, y1 = posicoes[i]
+            x2, y2 = posicoes[pos_obj]
+            distancia += abs(x1 - x2) + abs(y1 - y2)
+    
+    return distancia
+
+def constroi_caminho(nodo: Nodo) -> list[str]:
+    """
+    Constrói o caminho do nó inicial até o nó atual,
+    retornando a lista de ações realizadas
+    """
+    caminho = []
+    while nodo.pai is not None:
+        caminho.append(nodo.acao)
+        nodo = nodo.pai
+    return list(reversed(caminho))
 
 def astar_hamming(estado:str)->list[str]:
     """
@@ -80,11 +135,45 @@ def astar_hamming(estado:str)->list[str]:
     estado recebido até o objetivo ("12345678_").
     Caso não haja solução a partir do estado recebido, retorna None
     :param estado: str
-    :return:
+    :return: list[str] com sequência de ações ou None se não houver solução
     """
-    # substituir a linha abaixo pelo seu codigo
-    raise NotImplementedError
-
+    from heapq import heappush, heappop
+    
+    # Nodo inicial
+    inicial = Nodo(estado, None, None, 0)
+    objetivo = "12345678_"
+    
+    # Fronteira (fila de prioridade) e conjunto de visitados
+    fronteira = []
+    visitados = set()
+    
+    # Adiciona o nodo inicial à fronteira com prioridade f(n) = g(n) + h(n)
+    heappush(fronteira, (calcula_hamming(estado), 0, inicial))  # (f, contador, nodo)
+    contador = 1  # Para desempate quando f for igual
+    
+    while fronteira:
+        f, _, nodo_atual = heappop(fronteira)
+        
+        # Se chegou ao objetivo, reconstrói o caminho
+        if nodo_atual.estado == objetivo:
+            return constroi_caminho(nodo_atual)
+            
+        # Se já visitou este estado, continua
+        if nodo_atual.estado in visitados:
+            continue
+            
+        # Marca como visitado
+        visitados.add(nodo_atual.estado)
+        
+        # Expande o nodo atual e adiciona sucessores à fronteira
+        for sucessor in expande(nodo_atual):
+            if sucessor.estado not in visitados:
+                f = sucessor.custo + calcula_hamming(sucessor.estado)  # f = g + h
+                heappush(fronteira, (f, contador, sucessor))
+                contador += 1
+    
+    # Se não encontrou solução
+    return None
 
 def astar_manhattan(estado:str)->list[str]:
     """
@@ -93,10 +182,45 @@ def astar_manhattan(estado:str)->list[str]:
     estado recebido até o objetivo ("12345678_").
     Caso não haja solução a partir do estado recebido, retorna None
     :param estado: str
-    :return:
+    :return: list[str] com sequência de ações ou None se não houver solução
     """
-    # substituir a linha abaixo pelo seu codigo
-    raise NotImplementedError
+    from heapq import heappush, heappop
+    
+    # Nodo inicial
+    inicial = Nodo(estado, None, None, 0)
+    objetivo = "12345678_"
+    
+    # Fronteira (fila de prioridade) e conjunto de visitados
+    fronteira = []
+    visitados = set()
+    
+    # Adiciona o nodo inicial à fronteira com prioridade f(n) = g(n) + h(n)
+    heappush(fronteira, (calcula_manhattan(estado), 0, inicial))  # (f, contador, nodo)
+    contador = 1  # Para desempate quando f for igual
+    
+    while fronteira:
+        f, _, nodo_atual = heappop(fronteira)
+        
+        # Se chegou ao objetivo, reconstrói o caminho
+        if nodo_atual.estado == objetivo:
+            return constroi_caminho(nodo_atual)
+            
+        # Se já visitou este estado, continua
+        if nodo_atual.estado in visitados:
+            continue
+            
+        # Marca como visitado
+        visitados.add(nodo_atual.estado)
+        
+        # Expande o nodo atual e adiciona sucessores à fronteira
+        for sucessor in expande(nodo_atual):
+            if sucessor.estado not in visitados:
+                f = sucessor.custo + calcula_manhattan(sucessor.estado)  # f = g + h
+                heappush(fronteira, (f, contador, sucessor))
+                contador += 1
+    
+    # Se não encontrou solução
+    return None
 
 #opcional,extra
 def bfs(estado:str)->list[str]:
