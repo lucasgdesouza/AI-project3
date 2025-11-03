@@ -69,6 +69,14 @@ def expande(nodo:Nodo)->Set[Nodo]:
     :param nodo: objeto da classe Nodo
     :return: conjunto de nodos sucessores
     """
+
+     # Contador global de expansões (se existir)
+    try:
+        import __main__
+        __main__.nos_expandidos += 1
+    except:
+        pass
+        
     # Obter o conjunto de tuplas (ação, novo_estado) do estado atual
     sucessores = sucessor(nodo.estado)
     
