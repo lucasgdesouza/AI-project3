@@ -230,10 +230,39 @@ def bfs(estado:str)->list[str]:
     estado recebido até o objetivo ("12345678_").
     Caso não haja solução a partir do estado recebido, retorna None
     :param estado: str
-    :return:
+    :return: list[str] com sequência de ações ou None se não houver solução
     """
-    # substituir a linha abaixo pelo seu codigo
-    raise NotImplementedError
+    from collections import deque
+    
+    # Nodo inicial
+    inicial = Nodo(estado, None, None, 0)
+    objetivo = "12345678_"
+    
+    # Se já começa no objetivo
+    if estado == objetivo:
+        return []
+    
+    # Fila para BFS e conjunto de visitados
+    fila = deque([inicial])
+    visitados = {estado}
+    
+    # Enquanto houver nodos para explorar
+    while fila:
+        nodo_atual = fila.popleft()
+        
+        # Expande o nodo atual
+        for sucessor in expande(nodo_atual):
+            # Se este estado ainda não foi visitado
+            if sucessor.estado not in visitados:
+                if sucessor.estado == objetivo:
+                    return constroi_caminho(sucessor)
+                    
+                # Adiciona à fila e marca como visitado
+                fila.append(sucessor)
+                visitados.add(sucessor.estado)
+    
+    # Se não encontrou solução
+    return None
 
 #opcional,extra
 def dfs(estado:str)->list[str]:
@@ -243,10 +272,38 @@ def dfs(estado:str)->list[str]:
     estado recebido até o objetivo ("12345678_").
     Caso não haja solução a partir do estado recebido, retorna None
     :param estado: str
-    :return:
+    :return: list[str] com sequência de ações ou None se não houver solução
     """
-    # substituir a linha abaixo pelo seu codigo
-    raise NotImplementedError
+    # Nodo inicial
+    inicial = Nodo(estado, None, None, 0)
+    objetivo = "12345678_"
+    
+    # Se já começa no objetivo
+    if estado == objetivo:
+        return []
+    
+    # Pilha para DFS e conjunto de visitados
+    pilha = [inicial]
+    visitados = {estado}
+    
+    # Enquanto houver nodos para explorar
+    while pilha:
+        nodo_atual = pilha.pop()  # Remove e retorna o último elemento (topo da pilha)
+        
+        # Expande o nodo atual
+        # Invertemos a ordem dos sucessores para manter a ordem das ações consistente
+        for sucessor in reversed(list(expande(nodo_atual))):
+            # Se este estado ainda não foi visitado
+            if sucessor.estado not in visitados:
+                if sucessor.estado == objetivo:
+                    return constroi_caminho(sucessor)
+                    
+                # Adiciona à pilha e marca como visitado
+                pilha.append(sucessor)
+                visitados.add(sucessor.estado)
+    
+    # Se não encontrou solução
+    return None
 
 #opcional,extra
 def astar_new_heuristic(estado:str)->list[str]:
